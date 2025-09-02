@@ -24,6 +24,5 @@ public interface CategoryMapper {
      * @param categoryPageQueryDTO
      * @return
      */
-
     Page<Category> pageQuery(CategoryPageQueryDTO categoryPageQueryDTO);
 }
