@@ -18,5 +18,6 @@ public interface CategoryService {
      * @param categoryPageQueryDTO
      * @return
      */
+
     PageResult pageQuery(CategoryPageQueryDTO categoryPageQueryDTO);
 }
