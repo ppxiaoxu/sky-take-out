@@ -55,6 +55,7 @@ public class CategoryServiceImpl implements CategoryService {
      * @return
      */
     public PageResult pageQuery(CategoryPageQueryDTO categoryPageQueryDTO) {
+        //开启分页查询
         PageHelper.startPage(categoryPageQueryDTO.getPage() , categoryPageQueryDTO.getPageSize());
 
         Page<Category> page = categoryMapper.pageQuery(categoryPageQueryDTO);
