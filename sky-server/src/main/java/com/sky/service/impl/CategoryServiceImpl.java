@@ -70,7 +70,10 @@ public class CategoryServiceImpl implements CategoryService {
         return new PageResult(page.getTotal() , page.getResult());
     }
 
-    @Override
+    /**
+     * 删除分类
+     * @param id
+     */
     public void deleteById(long id) {
         //判断当前分类是否关联了菜品或者套餐，如果关联了，则无法删除，抛出业务异常
         Integer count = dishMapper.countByCategoryId(id);
@@ -111,5 +114,19 @@ public class CategoryServiceImpl implements CategoryService {
 
 
 
+    }
+
+    /**
+     * 启用禁用分类
+     * @param status
+     * @param id
+     */
+    public void startOrStop(Integer status, long id) {
+        Category category = new Category();
+        category.setStatus(status);
+        category.setId(id);
+        category.setUpdateTime(LocalDateTime.now());
+        category.setUpdateUser(BaseContext.getCurrentId());
+        categoryMapper.update(category);
     }
 }
