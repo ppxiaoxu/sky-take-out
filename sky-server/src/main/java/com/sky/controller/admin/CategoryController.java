@@ -68,4 +68,14 @@ public class CategoryController {
     }
 
 
+
+
+
+    @PutMapping
+    @ApiOperation("编辑分类")
+    public Result<String> update(@RequestBody CategoryDTO categoryDTO){
+        log.info("编辑分类：{}" , categoryDTO);
+        categoryService.update(categoryDTO);
+        return Result.success();
+    }
 }
