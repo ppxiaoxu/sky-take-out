@@ -20,7 +20,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 
@@ -94,13 +93,59 @@ public class DishServiceImpl implements DishService {
             throw new DeletionNotAllowedException(MessageConstant.DISH_BE_RELATED_BY_SETMEAL);
         }
 
-        //删除菜品表中的菜品数据
-        for (Long id : ids) {
-            dishMapper.deleteById(id);
-        }
-        //删除关联的口味数据
-        for (Long id : ids) {
-            dishFlavorMapper.deleteByDishId(id);
+//        //删除菜品表中的菜品数据
+//        for (Long id : ids) {
+//            dishMapper.deleteById(id);
+//        }
+//        //删除关联的口味数据
+//        for (Long id : ids) {
+//            dishFlavorMapper.deleteByDishId(id);
+//        }
+
+        //根据id批量删除菜品表和口味表的数据
+        dishMapper.deleteByIds(ids);
+        dishFlavorMapper.deleteByDishIds(ids);
+    }
+
+    /**
+     * 根据id查询菜品和对应的口味
+     *
+     * @param id
+     */
+    public DishVO getByIdWithFlavor(Long id) {
+        //查询菜品数据
+        Dish dish = dishMapper.getById(id);
+        //查询口味数据
+        List<DishFlavor> dishFlavors = dishFlavorMapper.getByDishId(id);
+
+        DishVO dishVO = new DishVO();
+        BeanUtils.copyProperties(dish,dishVO);
+        dishVO.setFlavors(dishFlavors);
+        return dishVO;
+    }
+
+    /**
+     * 修改菜品及对应的口味
+     * @param dishDTO
+     */
+    public void updateWithFlavor(DishDTO dishDTO) {
+        Dish dish = new Dish();
+        BeanUtils.copyProperties(dishDTO, dish);
+        //修改菜品表基本信息
+        dishMapper.upadte(dish);
+
+        //删除原有的口味数据
+        dishFlavorMapper.deleteByDishId(dishDTO.getId());
+
+        //插入新的口味数据
+        Long dishId = dishDTO.getId();
+        List<DishFlavor> flavors = dishDTO.getFlavors();
+        if (flavors != null && flavors.size() > 0) {
+            flavors.forEach(dishFlavor -> {
+                dishFlavor.setDishId(dishId);
+            });
+            dishFlavorMapper.insertBatch(flavors);
+
         }
     }
 }
