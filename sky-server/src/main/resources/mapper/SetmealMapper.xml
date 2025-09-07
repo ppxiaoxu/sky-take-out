@@ -9,4 +9,19 @@
         (#{id}, #{categoryId}, #{name}, #{price}, #{status}, #{description}, #{image}, #{createTime}, #{updateTime}, #{createUser}, #{updateUser})
     </insert>
 
+    <select id="pageQuery" resultType="com.sky.vo.SetmealVO">
+        select * from setmeal s left outer join setmeal_dish sd on s.id = sd.setmeal_id
+        <where>
+            <if test="categoryId != null">
+                and s.category_id = #{categoryId}
+            </if>
+            <if test="name != null">
+                and s.name = #{name}
+            </if>
+            <if test="status != null">
+                and s.status = #{status}
+            </if>
+        </where>
+        order by s.create_time desc
+    </select>
 </mapper>
