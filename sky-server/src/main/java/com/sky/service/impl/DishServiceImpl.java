@@ -162,5 +162,12 @@ public class DishServiceImpl implements DishService {
         dishMapper.upadte(dish);
     }
 
+    @Override
+    public List<Dish> list(Long categoryId) {
+        log.info("根据分类id查询菜品: {}" , categoryId);
+        Dish dish = Dish.builder().categoryId(categoryId).status(StatusConstant.ENABLE).build();
+        return dishMapper.list(dish);
+    }
+
 
 }
