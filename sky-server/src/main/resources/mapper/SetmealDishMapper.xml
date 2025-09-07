@@ -15,7 +15,7 @@
         insert into setmeal_dish (setmeal_id, dish_id, name, price, copies)
         values
         <foreach collection="setmealDishes" item="sd" separator=",">
-            (#{sd.dishId},#{sd.setmealId} ,#{sd.name}, #{sd.price}, #{sd.copies})
+            (#{sd.setmealId} , #{sd.dishId} , #{sd.name} , #{sd.price} , #{sd.copies})
         </foreach>
     </insert>
 
