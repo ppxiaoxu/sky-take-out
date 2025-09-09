@@ -96,6 +96,12 @@ public class SetmealController {
     }
 
 
+    /**
+     * 套餐起售、停售
+     * @param status
+     * @param id
+     * @return
+     */
     @PostMapping("/status/{status}")
     @ApiOperation("套餐起售与停售")
     public Result<String> startOrStop(@PathVariable Integer status, Long id) {
