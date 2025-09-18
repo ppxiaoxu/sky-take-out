@@ -12,7 +12,7 @@ public interface UserMapper {
      * @return
      */
     @Select("select * from user where openid = #{openid}")
-    User getByUserId(String openid);
+    User getByOpenId(String openid);
 
     /**
      * 插入数据

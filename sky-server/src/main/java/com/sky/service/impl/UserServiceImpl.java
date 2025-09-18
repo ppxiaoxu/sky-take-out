@@ -43,7 +43,7 @@ public class UserServiceImpl implements UserService {
             throw new LoginFailedException(MessageConstant.LOGIN_FAILED);
         }
         //判断当前用户是否为新用户
-        User user = userMapper.getByUserId(openid);
+        User user = userMapper.getByOpenId(openid);
         //是新用户，自动完成注
         if (user == null) {
             user = User.builder()
