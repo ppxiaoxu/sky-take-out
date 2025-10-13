@@ -60,6 +60,14 @@ public class OrderController {
         return Result.success(pageResult);
     }
 
+    @GetMapping("/orderDetail/{id}")
+    @ApiOperation("查询订单详情")
+    public Result details(@PathVariable("id") Long id){
+        OrderVO orderVO = orderService.details(id);
+        return Result.success(orderVO);
+
+    }
+
 
 
 
