@@ -31,4 +31,30 @@
         </set>
         where id = #{id}
     </update>
+    <select id="pageQuery" resultType="com.sky.entity.Orders">
+        select * from orders
+        <where>
+            <if test = 'number'>
+                and number like concat('%',#{number},'%')
+            </if>
+            <if test = 'phone'>
+                and phone like concat('%',#{phone},'%')
+            </if>
+            <if test = 'status'>
+                and status = #{status}
+            </if>
+            <if test = 'userId'>
+                and user_id = #{userId}
+            </if>
+            <if test = 'beginTime'>
+                and order_time >= #{beginTime}
+            </if>
+            <if test = 'endTime'>
+                and order_time <![CDATA[ <= ]]> #{endTime}
+            </if>
+        </where>
+        order by order_time desc
+    </select>
+
+
 </mapper>
