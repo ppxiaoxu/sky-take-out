@@ -31,6 +31,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -281,6 +282,51 @@ public class OrderServiceImpl implements OrderService {
         orders.setCancelReason("用户取消");
         orders.setCancelTime(LocalDateTime.now());
         orderMapper.update(orders);
+
+
+    }
+
+    /**
+     * 再来一单
+     * @param id
+     */
+    @Override
+    public void OneMoreOrder(Long id) {
+        //当前登录用户id
+        Long userId = BaseContext.getCurrentId();
+        //根据订单id查询订单数据
+        List<OrderDetail> orderDetailList = orderDetailMapper.getByOrderId(id);
+
+
+//            循环插入购物车数据
+//            for(OrderDetail orderDetail : orderDetailList){
+//                ShoppingCart shoppingCart = new ShoppingCart();
+//                shoppingCart.setUserId(userId);
+//                shoppingCart.setDishId(orderDetail.getDishId());
+//                shoppingCart.setSetmealId(orderDetail.getSetmealId());
+//                shoppingCart.setName(orderDetail.getName());
+//                shoppingCart.setDishFlavor(orderDetail.getDishFlavor());
+//                shoppingCart.setImage(orderDetail.getImage());
+//                shoppingCart.setAmount(orderDetail.getAmount());
+//                shoppingCart.setNumber(orderDetail.getNumber());
+//                shoppingCart.setCreateTime(LocalDateTime.now());
+//                shoppingCartMapper.insert(shoppingCart);
+//            }
+
+        //批量插入数据
+        List<ShoppingCart> shoppingCartList = orderDetailList.stream().map(orderDetail -> {
+            ShoppingCart shoppingCart = new ShoppingCart();
+
+            //将原订单的数据复制到购物车
+            BeanUtils.copyProperties(orderDetail, shoppingCart);
+            shoppingCart.setUserId(userId);
+            shoppingCart.setCreateTime(LocalDateTime.now());
+            return shoppingCart;
+        }).collect(Collectors.toList());
+
+        //将购物车对象批量插入数据库
+        shoppingCartMapper.insertBatch(shoppingCartList);
+
 
 
     }

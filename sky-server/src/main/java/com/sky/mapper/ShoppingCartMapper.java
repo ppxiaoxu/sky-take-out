@@ -41,4 +41,9 @@ public interface ShoppingCartMapper {
      */
     void deleteShoppingCart(ShoppingCart shoppingCart);
 
+    /**
+     * 批量插入
+     * @param shoppingCartList
+     */
+    void insertBatch(List<ShoppingCart> shoppingCartList);
 }

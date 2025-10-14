@@ -81,6 +81,11 @@ public class OrderController {
         return Result.success(orderVO);
     }
 
+    /**
+     * 取消订单
+     * @param id
+     * @return
+     */
     @PutMapping("/cancel/{id}")
     public Result cancel(@PathVariable("id")Long id){
         log.info("用户取消订单id: {}" , id);
@@ -88,13 +93,15 @@ public class OrderController {
         return Result.success();
     }
 
-
-
-
-
-
-
-
-
-
+    /**
+     * 再来一单
+     * @param id
+     * @return
+     */
+    @PostMapping("/repetition/{id}")
+    public Result OneMoreOrder(@PathVariable("id") Long id){
+        log.info("再来一单");
+        orderService.OneMoreOrder(id);
+        return Result.success();
+    }
 }
