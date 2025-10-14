@@ -53,20 +53,44 @@ public class OrderController {
         return Result.success(orderPaymentVO);
     }
 
+    /**
+     * 历史订单查询
+     *
+     * @param page
+     * @param pageSize
+     * @param status   订单状态 1待付款 2待接单 3已接单 4派送中 5已完成 6已取消
+     * @return
+     */
     @GetMapping("/historyOrders")
-    @ApiOperation("查询历史订单")
-    public Result<PageResult> page(int page , int pageSize , Integer status){
-        PageResult pageResult = orderService.pageQuery4User(page,pageSize,status);
+    @ApiOperation("历史订单查询")
+    public Result<PageResult> page(int page, int pageSize, Integer status) {
+        PageResult pageResult = orderService.pageQuery4User(page, pageSize, status);
         return Result.success(pageResult);
     }
 
+    /**
+     * 查询订单详情
+     *
+     * @param id
+     * @return
+     */
     @GetMapping("/orderDetail/{id}")
     @ApiOperation("查询订单详情")
-    public Result details(@PathVariable("id") Long id){
+    public Result<OrderVO> details(@PathVariable("id") Long id) {
         OrderVO orderVO = orderService.details(id);
         return Result.success(orderVO);
-
     }
+
+    @PutMapping("/cancel/{id}")
+    public Result cancel(@PathVariable("id")Long id){
+        log.info("用户取消订单id: {}" , id);
+        orderService.cancel(id);
+        return Result.success();
+    }
+
+
+
+
 
 
 

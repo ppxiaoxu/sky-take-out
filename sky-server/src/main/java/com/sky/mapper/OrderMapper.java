@@ -31,19 +31,18 @@ public interface OrderMapper {
      */
     void update(Orders orders);
 
+
     /**
      * 修改订单状态
      * @param orderStatus
      * @param orderPaidStatus
-     * @param check_out_time
+     * @param checkOutTime
      * @param id
      */
-    @Update("update orders set status = #{orderStatus},pay_status = #{orderPaidStatus} ,checkout_time = #{check_out_time} where id = #{id}")
-    void updateStatus(Integer orderStatus, Integer orderPaidStatus, LocalDateTime check_out_time, Long id);
-
+    @Update("update orders set status = #{orderStatus}, pay_status = #{orderPaidStatus}, checkout_time = #{checkOutTime} where id = #{id}")
+    void updateStatus(Integer orderStatus, Integer orderPaidStatus, LocalDateTime checkOutTime, Long id);
 
     /**
-     *
      * 分页查询订单
      * @param ordersPageQueryDTO
      * @return
@@ -53,8 +52,7 @@ public interface OrderMapper {
     /**
      * 根据id查询订单
      * @param id
-     * @return
      */
-    @Select("select * from orders where id = #{id}")
+    @Select("select * from orders where id=#{id}")
     Orders getById(Long id);
 }

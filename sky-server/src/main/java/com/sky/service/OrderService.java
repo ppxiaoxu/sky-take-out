@@ -31,9 +31,8 @@ public interface OrderService {
      */
     void paySuccess(String outTradeNo);
 
-
     /**
-     * 历史订单查询
+     * 用户端订单分页查询
      * @param page
      * @param pageSize
      * @param status
@@ -47,4 +46,10 @@ public interface OrderService {
      * @return
      */
     OrderVO details(Long id);
+
+    /**
+     * 用户取消订单
+     * @param id
+     */
+    void cancel(Long id);
 }
