@@ -6,6 +6,7 @@ import com.github.pagehelper.PageHelper;
 import com.github.xiaoymin.knife4j.core.util.CollectionUtils;
 import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
+import com.sky.dto.OrdersConfirmDTO;
 import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.dto.OrdersPaymentDTO;
 import com.sky.dto.OrdersSubmitDTO;
@@ -387,16 +388,31 @@ public class OrderServiceImpl implements OrderService {
      * 各个订单数量统计
      */
     public OrderStatisticsVO statistics() {
-        Integer confirmed = orderMapper.countStatus(Orders.TO_BE_CONFIRMED);
+        //根据订单状态分别查询订单数量
+        Integer toBeConfirmed = orderMapper.countStatus(Orders.TO_BE_CONFIRMED);
+        Integer confirmed = orderMapper.countStatus(Orders.CONFIRMED);
         Integer deliveryInProgress = orderMapper.countStatus(Orders.DELIVERY_IN_PROGRESS);
-        Integer completed = orderMapper.countStatus(Orders.COMPLETED);
-
-        //将查询的数据封装到 OrderStatisticsVO 中
+        //封装结果数据
         OrderStatisticsVO orderStatisticsVO = new OrderStatisticsVO();
-        orderStatisticsVO.setToBeConfirmed(confirmed);
+        orderStatisticsVO.setToBeConfirmed(toBeConfirmed);
+        orderStatisticsVO.setConfirmed(confirmed);
         orderStatisticsVO.setDeliveryInProgress(deliveryInProgress);
-        orderStatisticsVO.setConfirmed(completed);
         return orderStatisticsVO;
+
+
+    }
+
+    /**
+     * 商家接单
+     * @param ordersConfirmDTO
+     * @return
+     */
+    public void confirm(OrdersConfirmDTO ordersConfirmDTO) {
+        Orders orders = new Orders();
+        orders.setId(ordersConfirmDTO.getId());
+        orders.setStatus(Orders.CONFIRMED);
+        orderMapper.update(orders);
+
 
 
     }
