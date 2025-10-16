@@ -3,6 +3,7 @@ package com.sky.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.github.xiaoymin.knife4j.core.util.CollectionUtils;
 import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
 import com.sky.dto.OrdersPageQueryDTO;
@@ -16,10 +17,7 @@ import com.sky.result.PageResult;
 import com.sky.result.Result;
 import com.sky.service.OrderService;
 import com.sky.utils.WeChatPayUtil;
-import com.sky.vo.DishVO;
-import com.sky.vo.OrderPaymentVO;
-import com.sky.vo.OrderSubmitVO;
-import com.sky.vo.OrderVO;
+import com.sky.vo.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +28,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -60,6 +59,7 @@ public class OrderServiceImpl implements OrderService {
 
     /**
      * 用户下单
+     *
      * @param ordersSubmitDTO
      * @return
      */
@@ -68,7 +68,7 @@ public class OrderServiceImpl implements OrderService {
         log.info("用户下单：{}", ordersSubmitDTO);
         //处理业务异常（地址簿为空，购物车数据为空）
         AddressBook addressBook = addressBookMapper.getById(ordersSubmitDTO.getAddressBookId());
-        if(addressBook == null){
+        if (addressBook == null) {
             //地址簿为空,不能下单
             throw new AddressBookBusinessException(MessageConstant.ADDRESS_BOOK_IS_NULL);
         }
@@ -78,13 +78,13 @@ public class OrderServiceImpl implements OrderService {
         shoppingCart.setUserId(userId);
         List<ShoppingCart> shoppingCartList = shoppingCartMapper.list(shoppingCart);
         //判断购物车数据是否为空
-        if(shoppingCartList == null || shoppingCartList.size() == 0){
+        if (shoppingCartList == null || shoppingCartList.size() == 0) {
             throw new AddressBookBusinessException(MessageConstant.SHOPPING_CART_IS_NULL);
         }
 
         //向订单表中插入一条数据
         Orders orders = new Orders();
-        BeanUtils.copyProperties(ordersSubmitDTO , orders);
+        BeanUtils.copyProperties(ordersSubmitDTO, orders);
         orders.setOrderTime(LocalDateTime.now());
         orders.setPayStatus(Orders.UN_PAID);//待支付
         orders.setStatus(Orders.PENDING_PAYMENT);//待付款
@@ -101,9 +101,9 @@ public class OrderServiceImpl implements OrderService {
 
         List<OrderDetail> orderDetailList = new ArrayList<>();
         //向订单明细表插入n条数据
-        for (ShoppingCart cart : shoppingCartList){
+        for (ShoppingCart cart : shoppingCartList) {
             OrderDetail orderDetail = new OrderDetail();
-            BeanUtils.copyProperties(cart , orderDetail);
+            BeanUtils.copyProperties(cart, orderDetail);
             orderDetail.setOrderId(orders.getId());//设置当前订单明细关联的订单id
             orderDetailList.add(orderDetail);
 
@@ -146,7 +146,7 @@ public class OrderServiceImpl implements OrderService {
 //            throw new OrderBusinessException("该订单已支付");
 //        }
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("code","ORDERPAID");
+        jsonObject.put("code", "ORDERPAID");
         OrderPaymentVO vo = jsonObject.toJavaObject(OrderPaymentVO.class);
         vo.setPackageStr(jsonObject.getString("package"));
         Integer OrderPaidStatus = Orders.PAID;//支付状态，已支付
@@ -244,7 +244,7 @@ public class OrderServiceImpl implements OrderService {
      *
      * @param id
      */
-    public void cancel(Long id){
+    public void cancel(Long id) {
         // 根据id查询订单
         Orders ordersDB = orderMapper.getById(id);
 
@@ -288,6 +288,7 @@ public class OrderServiceImpl implements OrderService {
 
     /**
      * 再来一单
+     *
      * @param id
      */
     @Override
@@ -328,10 +329,83 @@ public class OrderServiceImpl implements OrderService {
         shoppingCartMapper.insertBatch(shoppingCartList);
 
 
+    }
+
+    /**
+     * 条件搜索订单
+     *
+     * @param ordersPageQueryDTO
+     * @return
+     */
+    public PageResult conditionSearch(OrdersPageQueryDTO ordersPageQueryDTO) {
+        PageHelper.startPage(ordersPageQueryDTO.getPage(), ordersPageQueryDTO.getPageSize());
+        Page<Orders> page = orderMapper.pageQuery(ordersPageQueryDTO);
+
+        //部分订单状态需要额外返回菜品信息，将Orders 对象转为 OrderVO
+        List<OrderVO> orderVOList = getOrderVOList(page);
+        return new PageResult(page.getTotal(), orderVOList);
+    }
+
+
+
+    private List<OrderVO> getOrderVOList(Page<Orders> page) {
+        List<OrderVO> orderVOlist = new ArrayList<>();
+        List<Orders> ordersList = page.getResult();
+
+        //CollectionUtils 是 Spring 框架提供的一个工具类，
+        //专门用来处理集合（List、Set等）的常见操作，特别是空值安全检查。
+        if (!CollectionUtils.isEmpty(ordersList)) {
+            for (Orders orders : ordersList) {
+                OrderVO orderVO = new OrderVO();
+                BeanUtils.copyProperties(orders, orderVO);
+                //将菜品信息拼接为一个字符串，格式为：菜品*数量;菜品*数量
+                String orderDishs = getOrderDishesStr(orders);
+                orderVO.setOrderDishes(orderDishs);
+                orderVOlist.add(orderVO);
+
+            }
+
+        }
+        return orderVOlist;
 
     }
 
+    private String getOrderDishesStr(Orders orders) {
+        //根据id查询订单详情
+        List<OrderDetail> orderDetailList = orderDetailMapper.getByOrderId(orders.getId());
+        List<String> dishList = orderDetailList.stream().map(orderDetail -> {
+            String dish = orderDetail.getName() + "*" + orderDetail.getNumber();
+            return dish;
+        }).collect(Collectors.toList());
+
+        return String.join(";", dishList);
+
+    }
+
+
+    /**
+     * 各个订单数量统计
+     */
+    public OrderStatisticsVO statistics() {
+        Integer confirmed = orderMapper.countStatus(Orders.TO_BE_CONFIRMED);
+        Integer deliveryInProgress = orderMapper.countStatus(Orders.DELIVERY_IN_PROGRESS);
+        Integer completed = orderMapper.countStatus(Orders.COMPLETED);
+
+        //将查询的数据封装到 OrderStatisticsVO 中
+        OrderStatisticsVO orderStatisticsVO = new OrderStatisticsVO();
+        orderStatisticsVO.setToBeConfirmed(confirmed);
+        orderStatisticsVO.setDeliveryInProgress(deliveryInProgress);
+        orderStatisticsVO.setConfirmed(completed);
+        return orderStatisticsVO;
+
+
+    }
+
+
 }
+
+
+
 
 
 
