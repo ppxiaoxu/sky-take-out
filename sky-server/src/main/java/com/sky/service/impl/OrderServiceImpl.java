@@ -456,6 +456,30 @@ public class OrderServiceImpl implements OrderService {
 
     }
 
+    /**
+     * 商家取消订单
+     * * @param ordersCancelDTO
+     */
+    public void cancel(OrdersCancelDTO ordersCancelDTO) {
+        //根据id查询订单信息
+        Orders ordersDB = orderMapper.getById(ordersCancelDTO.getId());
+        Orders orders = new Orders();
+        orders.setId(ordersDB.getId());
+        Integer payStatus = ordersDB.getPayStatus();
+        if(payStatus == Orders.PAID){
+            //完成支付，需要退款
+            log.info("模拟微信支付退款操作");
+            // 支付状态修改为 退款
+            ordersDB.setPayStatus(Orders.REFUND);
+        }
+        //更新订单状态，设置订单取消原因
+        orders.setStatus(Orders.CANCELLED);
+        orders.setCancelReason(ordersCancelDTO.getCancelReason());
+        orders.setCancelTime(LocalDateTime.now());
+        orderMapper.update(orders);
+
+    }
+
 
 }
 
