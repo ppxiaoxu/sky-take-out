@@ -6,10 +6,7 @@ import com.github.pagehelper.PageHelper;
 import com.github.xiaoymin.knife4j.core.util.CollectionUtils;
 import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
-import com.sky.dto.OrdersConfirmDTO;
-import com.sky.dto.OrdersPageQueryDTO;
-import com.sky.dto.OrdersPaymentDTO;
-import com.sky.dto.OrdersSubmitDTO;
+import com.sky.dto.*;
 import com.sky.entity.*;
 import com.sky.exception.AddressBookBusinessException;
 import com.sky.exception.OrderBusinessException;
@@ -19,11 +16,13 @@ import com.sky.result.Result;
 import com.sky.service.OrderService;
 import com.sky.utils.WeChatPayUtil;
 import com.sky.vo.*;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PutMapping;
 
 
 import java.math.BigDecimal;
@@ -413,6 +412,46 @@ public class OrderServiceImpl implements OrderService {
         orders.setStatus(Orders.CONFIRMED);
         orderMapper.update(orders);
 
+
+
+    }
+
+    /**
+     * 商家拒单
+     * @param ordersRejectionDTO
+     */
+    public void rejection(OrdersRejectionDTO ordersRejectionDTO) {
+        //根据id查询订单数据
+        Orders ordersDB = orderMapper.getById(ordersRejectionDTO.getId());
+
+        if(ordersDB == null || ordersDB.getStatus() != Orders.TO_BE_CONFIRMED){
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+
+        }
+        Orders orders = new Orders();
+        orders.setId(ordersDB.getId());
+
+        Integer payStatus = ordersDB.getPayStatus();
+        // 订单处于待接单状态下取消，需要进行退款
+        if (payStatus == Orders.PAID) {
+            // 模拟退款操作 - 注释掉原来的微信退款调用
+            log.info("模拟退款操作，订单号: {}, 退款金额: 0.01元", ordersDB.getNumber());
+
+            // 原来的微信退款调用（注释掉）
+            // weChatPayUtil.refund(
+            //         ordersDB.getNumber(), //商户订单号
+            //         ordersDB.getNumber(), //商户退款单号
+            //         new BigDecimal(0.01),//退款金额，单位 元
+            //         new BigDecimal(0.01));//原订单金额
+
+            //支付状态修改为 退款
+            orders.setPayStatus(Orders.REFUND);
+        }
+        //更新订单状态
+        orders.setStatus(Orders.CANCELLED);
+        orders.setRejectionReason(ordersRejectionDTO.getRejectionReason());
+        orders.setCancelTime(LocalDateTime.now());
+        orderMapper.update(orders);
 
 
     }
