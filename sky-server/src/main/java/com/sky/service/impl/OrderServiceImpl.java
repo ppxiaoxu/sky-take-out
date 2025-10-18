@@ -500,6 +500,27 @@ public class OrderServiceImpl implements OrderService {
 
     }
 
+    /**
+     * 商家完成订单
+     * @param id
+     */
+    public void complete(Long id) {
+        //根据id查询订单
+        Orders ordersDB = orderMapper.getById(id);
+
+        //判断订单状态
+        if(ordersDB == null || ordersDB.getStatus() != Orders.DELIVERY_IN_PROGRESS){
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+
+        Orders orders = new Orders();
+        orders.setId(ordersDB.getId());
+        //订单状态更新为 已完成
+        orders.setStatus(Orders.COMPLETED);
+        orders.setDeliveryTime(LocalDateTime.now());
+        orderMapper.update(orders);
+    }
+
 
 }
 
