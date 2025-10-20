@@ -104,4 +104,17 @@ public class OrderController {
         orderService.OneMoreOrder(id);
         return Result.success();
     }
+
+    /**
+     * 用户订单催单
+     * @param id
+     * @return
+     */
+    @GetMapping("/reminder/{id}")
+    @ApiOperation("用户订单催单")
+    public Result reminder(@PathVariable("id") Long id){
+        orderService.reminder(id);
+        return Result.success();
+    }
+
 }
