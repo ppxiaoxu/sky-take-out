@@ -19,6 +19,7 @@ import com.sky.service.OrderService;
 import com.sky.utils.HttpClientUtil;
 import com.sky.utils.WeChatPayUtil;
 import com.sky.vo.*;
+import com.sky.websocket.WebSocketServer;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -63,6 +64,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Value("${sky.baidu.ak}")
     private String ak;
+
+    @Autowired
+    private WebSocketServer webSocketServer;
 
     /**
      * 用户下单
@@ -231,6 +235,17 @@ public class OrderServiceImpl implements OrderService {
         Integer OrderStatus = Orders.TO_BE_CONFIRMED;  //订单状态，待接单
         LocalDateTime check_out_time = LocalDateTime.now();//更新支付时间
         orderMapper.updateStatus(OrderStatus, OrderPaidStatus, check_out_time, orders.getId());
+        paySuccess(ordersPaymentDTO.getOrderNumber());
+
+        // WebSocket推送浏览器消息 type orderId content
+        Map<String, Object> map = new HashMap<>();
+        map.put("type", 1); // 来电提醒 2催单
+        map.put("orderId", Long.parseLong(ordersPaymentDTO.getOrderNumber()));
+        map.put("content", "订单号:" + ordersPaymentDTO.getOrderNumber());
+
+        String json = JSON.toJSONString(map);
+        webSocketServer.sendToAllClient(json);
+
         return vo;
 
     }
@@ -254,6 +269,16 @@ public class OrderServiceImpl implements OrderService {
                 .build();
 
         orderMapper.update(orders);
+
+//        //通过websocket向客户端浏览器推送消息
+//        Map map = new HashMap();
+//        map.put("type" , 1);  //1表示来单提醒
+//        map.put("orderId" , ordersDB.getId());
+//        map.put("content" , "订单号：" + ordersDB.getNumber());
+//
+//        String json = JSON.toJSONString(map);
+//        webSocketServer.sendToAllClient(json);
+
     }
 
     /**
