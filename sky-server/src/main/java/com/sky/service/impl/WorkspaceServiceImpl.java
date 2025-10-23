@@ -67,7 +67,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         Double orderCompletionRate = 0.0;
         if(totalOrderCount != 0 && validOrderCount != 0){
             //订单完成率
-            orderCompletionRate = validOrderCount.doubleValue() / totalOrderCount;
+            orderCompletionRate = validOrderCount.doubleValue() / totalOrderCount ;
             //平均客单价
             unitPrice = turnover / validOrderCount;
         }
